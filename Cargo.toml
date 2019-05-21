@@ -1,5 +1,5 @@
 [package]
-name = "realdb"
+name = "r2_db"
 version = "0.1.0"
 authors = ["Jon D. <dyercode@users.noreply.github.com>"]
 edition = "2018"

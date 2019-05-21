@@ -769,6 +769,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "r2_db"
+version = "0.1.0"
+dependencies = [
+ "actix 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r2d2 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r2d2_sqlite 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rusqlite 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "r2d2"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -889,16 +899,6 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "rand_core 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "realdb"
-version = "0.1.0"
-dependencies = [
- "actix 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "r2d2 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "r2d2_sqlite 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rusqlite 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

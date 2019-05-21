@@ -19,8 +19,10 @@ fn main() {
 
     let system = System::new("yas");
     let addr = acceptor.start();
-    addr.try_send(Bind { pool: pool.clone() })
-        .expect("bind message");
+    addr.try_send(Bind {
+        config_db: ConfigDb { pool: pool.clone() },
+    })
+    .expect("bind message");
     addr.try_send(Write {
         name: "key".to_string(),
         value: "not_key".to_string(),
@@ -30,19 +32,35 @@ fn main() {
     system.run().unwrap_or_else(|_| panic!("can't even system"));
 }
 
-struct DbAcceptor {
-    pool: Option<r2d2::Pool<SqliteConnectionManager>>,
+struct ConfigDb {
+    pool: r2d2::Pool<SqliteConnectionManager>,
+}
+
+impl ConfigDb {
+    fn insert_config(&self, name: &str, value: &str) {
+        if let Ok(conn) = self.pool.get() {
+            conn.execute(
+                "insert into config (name, value) values (?,?)",
+                &[name, value],
+            )
+            .unwrap_or_else(|_| panic!("can't write omg"));
+        }
+    }
 }
 
 #[derive(Message)]
 struct Bind {
-    pool: r2d2::Pool<SqliteConnectionManager>,
+    config_db: ConfigDb,
 }
 
 #[derive(Message)]
 struct Write {
     name: String,
     value: String,
+}
+
+struct DbAcceptor {
+    pool: Option<ConfigDb>,
 }
 
 impl Actor for DbAcceptor {
@@ -53,7 +71,7 @@ impl Handler<Bind> for DbAcceptor {
     type Result = ();
 
     fn handle(&mut self, msg: Bind, _ctx: &mut Self::Context) -> Self::Result {
-        self.pool = Some(msg.pool);
+        self.pool = Some(msg.config_db);
     }
 }
 
@@ -61,14 +79,8 @@ impl Handler<Write> for DbAcceptor {
     type Result = ();
 
     fn handle(&mut self, msg: Write, _ctx: &mut Self::Context) -> Self::Result {
-        if let Some(db) = self.pool.clone() {
-            if let Ok(conn) = db.get() {
-                conn.execute(
-                    "insert into config (name, value) values (?,?)",
-                    &[&msg.name, &msg.value],
-                )
-                .unwrap_or_else(|_| panic!("can't write omg"));
-            }
+        if let Some(db) = &self.pool {
+            db.insert_config(&msg.name, &msg.value);
         }
     }
 }
