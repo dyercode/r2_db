@@ -1,0 +1,14 @@
+[package]
+name = "realdb"
+version = "0.1.0"
+authors = ["Jon D. <dyercode@users.noreply.github.com>"]
+edition = "2018"
+
+[dependencies]
+actix = "0.8.2"
+r2d2 = "0.8.4"
+r2d2_sqlite = "0.10.0"
+
+[dependencies.rusqlite]
+version = "0.18.0"
+features = ["bundled"]
