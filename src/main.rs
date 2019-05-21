@@ -1,4 +1,4 @@
-use actix::{Actor, Context, Handler, Message, System};
+use actix::{Actor, Addr, Context, Handler, Message, System};
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::NO_PARAMS;
 
@@ -22,28 +22,20 @@ fn main() {
     let system = System::new("yas");
     let addr1 = acceptor1.start();
     let addr2 = acceptor2.start();
-    addr1
-        .try_send(Bind {
-            config_db: config_db.clone(),
-        })
-        .expect("bind message");
-    addr1
-        .try_send(Write {
-            name: "key".to_string(),
-            value: "not_key".to_string(),
-        })
-        .expect("write message");
-
-    addr2.try_send(Bind { config_db }).expect("bind message");
-    addr2
-        .try_send(Write {
-            name: "key2".to_string(),
-            value: "2nd_not_key".to_string(),
-        })
-        .expect("write message");
+    bind_and_write(addr1, config_db.clone(), "key", "not_key");
+    bind_and_write(addr2, config_db, "key2", "2nd_not_key");
 
     System::current().stop();
     system.run().unwrap_or_else(|_| panic!("can't even system"));
+}
+
+fn bind_and_write(addr: Addr<DbAcceptor>, config_db: ConfigDb, name: &str, value: &str) {
+    addr.try_send(Bind { config_db }).expect("bind failed");
+    addr.try_send(Write {
+        name: name.to_string(),
+        value: value.to_string(),
+    })
+    .expect("write failed");
 }
 
 #[derive(Clone)]
