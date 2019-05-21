@@ -15,23 +15,38 @@ fn main() {
         )
         .unwrap();
 
-    let acceptor = DbAcceptor { pool: None };
+    let acceptor1 = DbAcceptor { pool: None };
+    let acceptor2 = DbAcceptor { pool: None };
+    let config_db = ConfigDb { pool: pool.clone() };
 
     let system = System::new("yas");
-    let addr = acceptor.start();
-    addr.try_send(Bind {
-        config_db: ConfigDb { pool: pool.clone() },
-    })
-    .expect("bind message");
-    addr.try_send(Write {
-        name: "key".to_string(),
-        value: "not_key".to_string(),
-    })
-    .expect("write message");
+    let addr1 = acceptor1.start();
+    let addr2 = acceptor2.start();
+    addr1
+        .try_send(Bind {
+            config_db: config_db.clone(),
+        })
+        .expect("bind message");
+    addr1
+        .try_send(Write {
+            name: "key".to_string(),
+            value: "not_key".to_string(),
+        })
+        .expect("write message");
+
+    addr2.try_send(Bind { config_db }).expect("bind message");
+    addr2
+        .try_send(Write {
+            name: "key2".to_string(),
+            value: "2nd_not_key".to_string(),
+        })
+        .expect("write message");
+
     System::current().stop();
     system.run().unwrap_or_else(|_| panic!("can't even system"));
 }
 
+#[derive(Clone)]
 struct ConfigDb {
     pool: r2d2::Pool<SqliteConnectionManager>,
 }
